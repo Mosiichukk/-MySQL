@@ -1,0 +1,188 @@
+1.    Кількість тем може бути в діапазоні від 5 до 10.
+-- Створення тригера
+DELIMITER //
+CREATE TRIGGER check_topic_count
+BEFORE INSERT ON Tema
+FOR EACH ROW
+BEGIN
+  DECLARE topic_count INT;
+  SELECT COUNT(*) INTO topic_count FROM Tema;
+  
+  IF topic_count < 5 OR topic_count > 10 THEN
+    -- Забороняємо вставку нового рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Кількість тем повинна бути в діапазоні від 5 до 10.';
+  END IF;
+END //
+DELIMITER ;
+2.    Новинкою може бути тільки книга видана в поточному році.
+DELIMITER //
+CREATE TRIGGER check_book_release_year
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  DECLARE current_year INT;
+  SET current_year = YEAR(CURDATE());
+  
+  IF NEW.Pub_date <> current_year THEN
+    -- Забороняємо вставку або оновлення рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Новинкою може бути тільки книга видана в поточному році.';
+  END IF;
+END //
+DELIMITER ;
+3.    Книга з кількістю сторінок до 100 не може коштувати більше 10 $, до 200 - 20 $, до 300 - 30 $.
+DELIMITER //
+
+CREATE TRIGGER check_book_price
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  DECLARE book_price DECIMAL(10, 2);
+  
+  IF NEW.pages <= 100 THEN
+    SET book_price = 10.00;
+  ELSEIF NEW.pages <= 200 THEN
+    SET book_price = 20.00;
+  ELSEIF NEW.pages <= 300 THEN
+    SET book_price = 30.00;
+  ELSE
+    SET book_price = 0.00; -- Додайте обробку випадків, коли кількість сторінок перевищує 300
+  END IF;
+  
+  IF NEW.price > book_price THEN
+    -- Забороняємо вставку або оновлення рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ціна книги не відповідає кількості сторінок.';
+  END IF;
+END //
+
+DELIMITER ;
+4.    Видавництво "BHV" не випускає книги накладом меншим 5000, а видавництво Diasoft - 10000.
+CREATE TRIGGER check_publishing_house_stock
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  IF NEW.publishing = 'BHV' AND NEW.circulation < 5000 THEN
+    -- Забороняємо вставку або оновлення рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видавництво "BHV" не випускає книги накладом меншим 5000.';
+  END IF;
+  
+  IF NEW.publishing = 'Diasoft' AND NEW.circulation < 10000 THEN
+    -- Забороняємо вставку або оновлення рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видавництво "Diasoft" не випускає книги накладом меншим 10000.';
+  END IF;
+END //
+
+DELIMITER ;
+5.    Книги з однаковим кодом повинні мати однакові дані.
+DELIMITER //
+
+CREATE TRIGGER check_book_data_consistency
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  DECLARE book_count INT;
+  
+  SELECT COUNT(*) INTO book_count
+  FROM Books
+  WHERE code = NEW.code
+    AND (title <> NEW.title OR Publishing <> NEW.publishing OR price <> NEW.price);
+  
+  IF book_count > 0 THEN
+    -- Забороняємо вставку або оновлення рядка
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Книги з однаковим кодом повинні мати однакові дані.';
+  END IF;
+END //
+
+DELIMITER ;
+6.    При спробі видалення книги видається інформація про кількість видалених рядків. Якщо користувач не "dbo", то видалення забороняється.
+DELIMITER //
+
+CREATE TRIGGER check_book_deletion
+BEFORE DELETE ON Books
+FOR EACH ROW
+BEGIN
+  DECLARE deleted_rows INT;
+  
+  IF CURRENT_USER() <> 'dbo' THEN
+    -- Забороняємо видалення
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видалення заборонено для користувачів, що не є "dbo".';
+  ELSE
+    -- Виконуємо видалення та отримуємо кількість видалених рядків
+    DELETE FROM Books WHERE code = OLD.code;
+    SET deleted_rows = ROW_COUNT();
+    
+    -- Записуємо інформацію про видалення в лог-таблицю
+    INSERT INTO DeletionLog (user_name, deleted_rows) VALUES (CURRENT_USER(), deleted_rows);
+  END IF;
+END //
+
+DELIMITER ;
+7.    Користувач "dbo" не має права змінювати ціну книги.
+DELIMITER //
+
+CREATE TRIGGER prevent_price_change
+BEFORE UPDATE ON Books
+FOR EACH ROW
+BEGIN
+  IF CURRENT_USER() = 'dbo' THEN
+    IF NEW.price <> OLD.price THEN
+      -- Забороняємо зміну ціни для користувача "dbo"
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Користувачу "dbo" заборонено змінювати ціну книги.';
+    END IF;
+  END IF;
+END //
+
+DELIMITER ;
+8.    Видавництва ДМК і Еком підручники не видають.DELIMITER //
+
+CREATE TRIGGER prevent_textbook_publishing
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  IF NEW.publishing IN ('ДМК', 'Еком') AND NEW.category = 'Підручник' THEN
+    -- Забороняємо видавництву ДМК і Еком видавати підручники
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видавництва ДМК і Еком не видають підручники.';
+  END IF;
+END //
+
+DELIMITER ;
+9.    Видавництво не може випустити більше 10 новинок протягом одного місяця поточного року.
+DELIMITER //
+
+CREATE TRIGGER limit_new_releases
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  DECLARE current_month INT;
+  DECLARE current_year INT;
+  DECLARE new_release_count INT;
+  
+  SET current_month = MONTH(CURDATE());
+  SET current_year = YEAR(CURDATE());
+  
+  SELECT COUNT(*) INTO new_release_count
+  FROM Books
+  WHERE Publishing = NEW.publishing
+    AND YEAR(release_date) = current_year
+    AND MONTH(release_date) = current_month;
+    
+  IF new_release_count >= 10 THEN
+    -- Забороняємо видавництву випускати більше 10 новинок протягом одного місяця поточного року
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видавництво не може випустити більше 10 новинок протягом одного місяця поточного року.';
+  END IF;
+END //
+
+DELIMITER ;
+10.    Видавництво BHV не випускає книги формату 60х88 / 16.
+DELIMITER //
+
+CREATE TRIGGER check_bhv_book_format
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+  IF NEW.publishing = 'BHV' AND NEW.format = '60x88 / 16' THEN
+    -- Забороняємо видавництву BHV випускати книги у форматі 60x88 / 16
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Видавництво BHV не випускає книги формату 60x88 / 16.';
+  END IF;
+END //
+
+DELIMITER ;
