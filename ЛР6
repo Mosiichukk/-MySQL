@@ -1,0 +1,37 @@
+1.    Вивести значення наступних колонок: назва книги, ціна, назва видавництва. Використовувати внутрішнє з'єднання, застосовуючи where.
+SELECT books.title, books.price, publisher.name
+FROM books
+INNER JOIN publisher ON books.publisher_id = publisher.id
+WHERE books.price > 50;
+
+2.    Вивести значення наступних колонок: назва книги, назва теми. Використовувати внутрішнє з'єднання, застосовуючи inner join
+SELECT books.title,tema.name FROM books INNER JOIN tema ON books.Tema_id = Tema_id;
+
+3.    Вивести значення наступних колонок: назва книги, ціна, назва видавництва, формат.
+SELECT books.title, books.price, publisher.name, books.format
+FROM books
+INNER JOIN publisher ON books.publisher_id = publisher.id;
+
+4.    Вивести значення наступних колонок: тема, категорія, назва книги, назва видавництва. Фільтр по темам і категоріям.
+SELECT tema.name, books.title, publisher.name FROM books INNER JOIN publisher ON books.publisher_id = publisher.id INNER JOIN tema ON books.tema_id = tema.id WHERE tema.name = '1' AND publisher.name = '3';
+
+5.    Вивести книги видавництва 'SQL', видані після 2000 р
+SELECT books.title, books.Pub_date FROM books INNER JOIN publisher ON books.publisher_id = publisher.id WHERE publisher.name = 'SQL' AND books.Pub_date > 2000;
+
+6 Вивести загальну кількість сторінок по кожній назві категорії. Фільтр по спадаючій кількості сторінок.
+SELECT tema.name, SUM(books.`Pages`) AS `Pages` FROM books INNER JOIN tema ON books.tema_id = tema.id GROUP BY tema.name ORDER BY `Pages` DESC LIMIT 25;
+
+7.    Вивести середню вартість книг по темі 'Використання ПК' і категорії 'Linux'.
+SELECT AVG(books.price) AS average_price
+FROM books
+INNER JOIN tema ON books.tema_id = tema.id
+WHERE tema.name = 'Використання ПК' AND books.category = 'Linux';
+
+8.    Вивести всі дані універсального відношення. Використовувати внутрішнє з'єднання, застосовуючи where.
+SELECT *
+FROM books
+INNER JOIN publisher ON books.publisher_id = publisher.id
+WHERE books.Pages >= 20
+LIMIT 25;
+
+10.    Вивести всі дані універсального відношення. Використовувати зовнішнє з'єднання, застосовуючи left join / rigth join.
