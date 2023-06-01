@@ -1,0 +1,106 @@
+1.Вивести значення наступних колонок: назва книги, ціна, назва видавництва, формат.
+SELECT b.title AS book_title, b.price, p.name AS publisher_name, b.format
+FROM books b
+INNER JOIN publisher p ON b.publisher_id = p.id;
+
+2.Вивести значення наступних колонок: тема, категорія, назва книги, назва видавництва. Фільтр по темам і категоріям.
+SELECT t.name AS tema, c.name AS category, b.title AS book_title, p.name AS publisher_name
+FROM books b
+INNER JOIN publisher p ON b.publisher_id = p.id
+INNER JOIN tema t ON b.tema_id = t.id
+INNER JOIN category c ON b.category_id = c.id
+WHERE t.name = 'Ваша тема' AND c.name = 'Ваша категорія'
+LIMIT 0, 25;
+
+3.Вивести книги видавництва 'BHV', видані після 2000 р
+SELECT b.title AS book_title, b.publish_year
+FROM books b
+INNER JOIN publisher p ON b.publisher_id = p.id
+WHERE p.name = 'BHV' AND b.publish_year > 2000
+LIMIT 0, 25;
+
+4.Вивести загальну кількість сторінок по кожній назві категорії. Фільтр по спадаючій / зростанню кількості сторінок.
+
+SELECT c.name AS category_name, SUM(b.pages) AS total_pages
+FROM books b
+INNER JOIN category c ON b.category_id = c.id
+GROUP BY c.name
+ORDER BY total_pages DESC;
+
+
+SELECT c.name AS category_name, SUM(b.pages) AS total_pages
+FROM books b
+INNER JOIN category c ON b.category_id = c.id
+GROUP BY c.name
+ORDER BY total_pages ASC;
+
+5.Вивести середню вартість книг по темі 'Використання ПК' і категорії 'Linux'.
+SELECT AVG(b.price) AS average_price
+FROM books b
+INNER JOIN tema t ON b.tema_id = t.id
+INNER JOIN category c ON b.category_id = c.id
+WHERE t.name = 'Використання ПК' AND c.name = 'Linux';
+
+7.    Вивести пари книг, що мають однакову кількість сторінок.
+Select a.Category AS book1, b.Category AS book2, 
+a.Pages FROM books a JOIN books b ON a.Pages = b.Pages WHERE a.Category < b.Category;
+
+8.    Вивести тріади книг, що мають однакову ціну.
+Select a.Title AS book1, b.Title AS book2, c.Title AS book3 FROM books a JOIN books b ON a.Price = b.Price JOIN books c ON b.Price = c.Price WHERE a.Title < b.Title AND b.Title < c.Title;
+
+9.Вивести всі книги категорії 'C ++'.
+SELECT b.title, b.price, b.format, p.name AS publisher_name
+FROM books b
+JOIN category c ON b.category_id = c.id
+JOIN publisher p ON b.publisher_id = p.id
+WHERE c.name = 'C ++';
+
+10. Вивести список видавництв, у яких розмір книг перевищує 400 сторінок.
+SELECT DISTINCT p.name AS publisher_name
+FROM books b
+JOIN publisher p ON b.publisher_id = p.id
+WHERE b.pages > 400;
+
+11.Вивести список категорій за якими більше 3-х книг.
+SELECT c.name AS category_name, COUNT(*) AS book_count
+FROM books b
+JOIN category c ON b.category_id = c.id
+GROUP BY c.name
+HAVING COUNT(*) > 3;
+
+12.Вивести список книг видавництва 'BHV', якщо в списку є хоча б одна книга цього видавництва.
+SELECT b.title AS book_title, b.publisher_id
+FROM books b
+WHERE b.publisher_id = (
+    SELECT id
+    FROM publisher
+    WHERE name = 'BHV'
+) LIMIT 0, 25;
+
+13.    Вивести список книг видавництва 'BHV', якщо в списку немає жодної книги цього видавництва.
+
+SELECT b.title AS book_title, b.publisher_id
+FROM books b
+WHERE b.publisher_id = (
+    SELECT id
+    FROM publisher
+    WHERE name = 'BHV'
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM books
+    WHERE publisher_id = b.publisher_id AND publisher_id <> (
+        SELECT id
+        FROM publisher
+        WHERE name = 'BHV'
+    )
+)
+LIMIT 0, 25;
+
+14.Вивести відсортоване загальний список назв тем і категорій.
+SELECT name AS title
+FROM tema
+UNION
+SELECT name AS title
+FROM category
+ORDER BY title;
