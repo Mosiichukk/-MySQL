@@ -1,0 +1,48 @@
+SELECT COUNT(*) AS total_books, SUM(price) AS total_price, AVG(price) AS avg_price, MIN(price) AS min_price, MAX(price) AS max_price FROM books;
+
+SELECT COUNT(*) AS total_books FROM books WHERE price IS NOT NULL;
+
+SELECT is_new, COUNT(*) AS total_books, SUM(price) AS total_price, AVG(price) AS avg_price, MIN(price) AS min_price, MAX(price) AS max_price FROM books GROUP BY is_new;
+
+SELECT YEAR(pub_date) AS Year, COUNT(*) AS Total_books, SUM(price) AS Total_price, AVG(price) AS Avg_price, MIN(price) AS Min_price, MAX(price) AS Max_price FROM books WHERE price IS NOT NULL GROUP BY YEAR(pub_date) ORDER BY Year ASC;
+
+SELECT YEAR(pub_date) AS year_published, COUNT(*) AS total_books, SUM(price) AS total_price, AVG(price) AS average_price, MIN(price) AS min_price, MAX(price) AS max_price FROM books WHERE price < 10 OR price > 20 GROUP BY YEAR(pub_date) ORDER BY year_published ASC;
+
+SELECT YEAR(pub_date) AS Year, COUNT(*) AS Total_books, SUM(price) AS Total_price, AVG(price) AS Average_price, MIN(price) AS Min_price, MAX(price) AS Max_price FROM books WHERE price NOT BETWEEN 10 AND 20 GROUP BY Year ORDER BY Total_books DESC;
+
+SELECT COUNT(DISTINCT code) AS unique_codes FROM books;
+
+SELECT UPPER(SUBSTR(title, 1, 1)) AS first_letter, COUNT(*) AS total_books, ROUND(SUM(price), 2) AS total_price FROM books WHERE price IS NOT NULL AND price >= 0 GROUP BY first_letter ORDER BY total_books DESC;
+
+SELECT UPPER(SUBSTR(title, 1, 1)) AS first_letter, COUNT(*) AS total_count, SUM(price) AS total_price FROM books WHERE SUBSTR(title, 1, 1) NOT REGEXP '^[a-zA-Z0-9]' GROUP BY first_letter ORDER BY total_count DESC;
+
+SELECT YEAR(pub_date) AS Year, COUNT(*) AS Book_count, SUM(price) AS Total_price, AVG(price) AS Avg_price, MAX(price) AS Max_price, MIN(price) AS Min_price FROM books WHERE YEAR(pub_date) > 2000 AND price NOT BETWEEN 10 AND 20 AND title NOT REGEXP '^[0-9a-zA-Z]' GROUP BY YEAR(pub_date) ORDER BY Book_count DESC;
+
+SELECT YEAR(pub_date) AS Year, MONTH(pub_date) AS Month, COUNT(*) AS Total_books, SUM(price) AS Total_price, AVG(price) AS Avg_price, MIN(price) AS Min_price, MAX(price) AS Max_price FROM books WHERE YEAR(pub_date) > 2000 GROUP BY Year, Month ORDER BY Year ASC, Month ASC;
+
+SELECT COUNT(*) AS book_count, SUM(price) AS total_price, AVG(price) AS avg_price, MIN(price) AS min_price, MAX(price) AS max_price, MONTH(pub_date) AS month, YEAR(pub_date) AS year FROM books WHERE pub_date IS NOT NULL GROUP BY YEAR(pub_date), MONTH(pub_date) ORDER BY YEAR(pub_date) ASC, MONTH(pub_date) ASC;
+
+SELECT CASE WHEN YEAR(publish_date) = YEAR(CURRENT_DATE()) THEN 'New' ELSE 'Not new' END AS is_new, SUM(price) AS total_price, ROUND(SUM(CASE currency WHEN 'USD' THEN price WHEN 'UAH' THEN FLOOR(price / 5) * 5 WHEN 'EUR' THEN ROUND(price) WHEN 'RUB' THEN FLOOR(price / 10) * 10 END)) AS total_price_local FROM books WHERE publish_date IS NOT NULL AND (price BETWEEN 0 AND 9.99 OR price
+
+SELECT COUNT(*) AS total_books, SUM(price) AS total_price, AVG(price) AS avg_price, Publishing FROM books WHERE Publishing IS NOT NULL GROUP BY Publishing LIMIT 0, 25;
+
+SELECT Publishing AS publisher, category AS category, COUNT(*) AS count, SUM(price) AS total_price, AVG(price) AS avg_price FROM books WHERE Publishing IN ('ABC Publishing', 'XYZ Publishing') GROUP BY Publishing, category;
+
+SELECT Category, Tema, Publishing, COUNT(*) AS total_books, SUM(price) AS total_price FROM books WHERE Publishing IN ('Publisher A', 'Publisher B', 'Publisher C') AND Tema IN ('Thriller', 'Romance') AND Category IN ('Fiction', 'Non-fiction') GROUP BY Category, Tema, Publishing LIMIT 0, 25;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
