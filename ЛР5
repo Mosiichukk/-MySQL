@@ -1,0 +1,50 @@
+
+CREATE TABLE Publisher (
+    id SERIAL PRIMARY KEY,
+    name varchar(50) );
+
+ALTER TABLE books ADD COLUMN publisher_id INTEGER REFERENCES publisher(id);
+
+INSERT INTO publisher (name) value("Вільямс");
+INSERT INTO publisher (name) value ("РИПОЛ Классик");
+INSERT INTO publisher (name) value ("Університет Україна");
+INSERT INTO publisher (name) value ("ДМК");
+INSERT INTO publisher (name) value ("DiaSoft");
+INSERT INTO publisher (name) value ("Видавнича група BHV");
+INSERT INTO publisher (name) value ("Вінниця: ВДТУ");
+INSERT INTO publisher (name) value ("BHV С.-Петербург");
+INSERT INTO publisher (name) value ("МікроАрт");
+INSERT INTO publisher (name) value ("КСД");
+
+ALTER TABLE table_name ADD COLUMN id INT AUTO_INCREMENT PRIMARY KEY First;
+
+UPDATE books SET publisher_id =1 WHERE publishing = "Вільямс";
+UPDATE books SET publisher_id =2 WHERE publishing = "РИПОЛ Классик";
+UPDATE books SET publisher_id =3 WHERE publishing = "Університет Україна";
+UPDATE books SET publisher_id =4 WHERE publishing = "ДМК";
+UPDATE books SET publisher_id =5 WHERE publishing = "DiaSoft";
+UPDATE books SET publisher_id =1 WHERE publishing = "Видавнича група BHV";
+UPDATE books SET publisher_id =2 WHERE publishing = "Вінниця: ВДТУ";
+UPDATE books SET publisher_id =3 WHERE publishing = "BHV С.-Петербург";
+UPDATE books SET publisher_id =4 WHERE publishing = "МікроАрт";
+UPDATE books SET publisher_id =4 WHERE publishing = "КСД";
+
+
+
+ALTER table books drop COLUMN publishing ; 
+
+CREATE table Tema (id int, name varchar(20))
+
+ALTER TABLE books ADD COLUMN Tema_id INT REFERENCES tema(id);
+
+INSERT INTO `tema`(`id`, `name`) VALUES (1,"Використання ПК в цілому");
+INSERT INTO `tema`(`id`, `name`) VALUES (2,"Fantasy");
+INSERT INTO `tema`(`id`, `name`) VALUES (3,"Програмування");
+
+UPDATE `books` SET `tema_id`=1 where `tema`= "Використання ПК в цілому";
+UPDATE `books` SET `tema_id`=2 where `tema` = "Fantasy";
+UPDATE `books` SET `tema_id`=3 where `tema` = "Програмування";
+
+ALTER table books drop column Tema
+
+
