@@ -1,0 +1,93 @@
+1.Розробити та перевірити скалярну (scalar) функцію, що повертає загальну вартість книг виданих в певному році.
+
+
+CREATE FUNCTION calculate_total_price(year_val INT) RETURNS DECIMAL(10, 2)
+BEGIN
+  DECLARE total_cost DECIMAL(10, 2);
+  
+  SELECT SUM(price) INTO total_cost FROM Books WHERE YEAR(Pub_date) = year_val;
+  
+  IF total_cost IS NULL THEN
+    SET total_cost = 0;
+  END IF;
+  
+  RETURN total_cost;
+
+
+SELECT calculate_total_price(2022) AS total_cost;
+2.Розробити і перевірити табличну (inline) функцію, яка повертає список книг виданих в певному році.
+
+CREATE FUNCTION get_books_by_year(year_val INT)
+RETURNS DATE
+RETURN (
+  SELECT title, publishing, pub_date
+  FROM Books
+  WHERE YEAR(pub_date) = year_val
+);
+
+SELECT * FROM get_books_by_year(2022);
+
+3.
+
+DELIMITER //
+
+CREATE FUNCTION multi_statement(publisher_string VARCHAR(500))
+RETURNS TEXT
+BEGIN
+  DECLARE publishing_list TEXT DEFAULT '';
+  DECLARE publishing_name VARCHAR(50);
+  DECLARE counter INT DEFAULT 1;
+  
+
+  DECLARE cur CURSOR FOR SELECT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(publisher_string, ';', counter), ';', -1)) AS publisher;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET @finished = TRUE;
+
+  OPEN cur;
+  
+  read_loop: LOOP
+   
+    FETCH cur INTO publisher_name;
+    
+   
+    IF @finished THEN
+      LEAVE read_loop;
+    END IF;
+    
+
+    SET publisher_list = CONCAT(publisher_list, counter, '. ', publisher_name, '\n');
+    
+    SET counter = counter + 1;
+  END LOOP;
+  
+
+  CLOSE cur;
+  
+  RETURN publisher_list;
+END //
+
+DELIMITER ;
+
+SELECT generate_publisher_list('Вільямс;МикроАрт;Видавнича група BHV') AS publisher_list;
+
+4. Виконати набір операцій по роботі з SQL курсором: оголосити курсор;
+     a.    використовувати змінну для оголошення курсору;
+
+DECLARE cur CURSOR FOR SELECT * FROM table_name;
+
+     b.    відкрити курсор;
+
+OPEN cur;
+
+     c.    переприсвоїти курсор іншої змінної;
+
+DECLARE new_cur CURSOR;
+SET new_cur = cur;
+
+     d.    виконати вибірку даних з курсору;
+
+DECLARE variable_name INT;
+FETCH cur INTO variable_name;
+
+     e.    закрити курсор;
+
+CLOSE cur;
